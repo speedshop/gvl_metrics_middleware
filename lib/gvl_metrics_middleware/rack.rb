@@ -29,6 +29,8 @@ module GvlMetricsMiddleware
         self.class.reporter&.call(gvl_times.duration_ns, gvl_times.running_duration_ns, gvl_times.idle_duration_ns, gvl_times.stalled_duration_ns)
       rescue => exception
         GvlMetricsMiddleware.on_report_failure&.call("Rack", exception)
+
+        raise(exception) unless GvlMetricsMiddleware.safe_guard?
       end
 
       response

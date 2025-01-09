@@ -6,8 +6,6 @@ require "gvl_metrics_middleware/sidekiq" if defined?(::Sidekiq)
 require "gvl_metrics_middleware/railtie" if defined?(::Rails)
 
 module GvlMetricsMiddleware
-  @@on_report_failure = nil
-
   def self.rack_reporter(&block)
     if block_given?
       GvlMetricsMiddleware::Rack.reporter = block
@@ -24,11 +22,21 @@ module GvlMetricsMiddleware
     end
   end
 
+  @@on_report_failure = nil
+
   def self.on_report_failure(&block)
     if block_given?
       @@on_report_failure = block
     else
       @@on_report_failure
     end
+  end
+
+  @@safe_guard = nil
+
+  def self.safe_guard? = @@safe_guard
+
+  def self.safe_guard=(value)
+    @@safe_guard = value
   end
 end

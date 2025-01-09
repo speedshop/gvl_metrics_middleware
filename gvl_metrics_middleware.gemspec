@@ -33,6 +33,10 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "gvl_timing"
 
+  spec.add_development_dependency "activemodel" # Just to be able to run the tests.
+  spec.add_development_dependency "activesupport"
+  spec.add_development_dependency "appraisal", ">= 2.2"
   spec.add_development_dependency "rack"
+  spec.add_development_dependency "railties", ">= 7.1"
   spec.add_development_dependency "sidekiq"
 end

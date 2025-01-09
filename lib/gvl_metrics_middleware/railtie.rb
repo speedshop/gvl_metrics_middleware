@@ -6,6 +6,17 @@ module GvlMetricsMiddleware
   class Railtie < Rails::Railtie
     config.gvm_metrics_middleware = ActiveSupport::OrderedOptions.new
     config.gvm_metrics_middleware.enabled = !Rails.env.test?
+    config.gvm_metrics_middleware.safe_guard = Rails.env.production?
+
+    initializer "gvl_metrics_middleware" do |app|
+      if app.config.gvm_metrics_middleware.enabled && app.config.gvm_metrics_middleware.safe_guard
+        GvlMetricsMiddleware.on_report_failure.nil? && GvlMetricsMiddleware.on_report_failure do |source, exception|
+          Rails.logger.error("GVL Metrics Middleware failed to report metrics from #{source}: #{exception.class} (#{exception.message})")
+        end
+
+        GvlMetricsMiddleware.safe_guard = app.config.gvm_metrics_middleware.safe_guard
+      end
+    end
 
     initializer "gvl_metrics_middleware.rack" do |app|
       app.config.middleware.insert(0, GvlMetricsMiddleware::Rack) if app.config.gvm_metrics_middleware.enabled
@@ -18,16 +29,6 @@ module GvlMetricsMiddleware
             chain.prepend(GvlMetricsMiddleware::Sidekiq)
           end
         end
-      end
-    end
-
-    config.after_initialize do |app|
-      setup_logger_for_report_failures if app.config.gvm_metrics_middleware.enabled
-    end
-
-    def setup_logger_for_report_failures
-      GvlMetricsMiddleware.on_report_failure.nil? && GvlMetricsMiddleware.on_report_failure do |source, exception|
-        Rails.logger.error("GVL Metrics Middleware failed to report metrics from #{source}: #{exception.class} (#{exception.message})")
       end
     end
   end
