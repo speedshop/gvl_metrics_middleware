@@ -6,7 +6,9 @@ require "gvl_metrics_middleware/sidekiq" if defined?(::Sidekiq)
 require "gvl_metrics_middleware/railtie" if defined?(::Rails)
 
 module GvlMetricsMiddleware
-  def self.rack_reporter(&block)
+  def self.configure = yield(self)
+
+  def self.rack(&block)
     if block_given?
       GvlMetricsMiddleware::Rack.reporter = block
     else
@@ -14,7 +16,7 @@ module GvlMetricsMiddleware
     end
   end
 
-  def self.sidekiq_reporter(&block)
+  def self.sidekiq(&block)
     if block_given?
       GvlMetricsMiddleware::Sidekiq.reporter = block
     else
