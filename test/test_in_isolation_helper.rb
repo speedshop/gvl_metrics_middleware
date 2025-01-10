@@ -81,7 +81,7 @@ module Generation
     FileUtils.rm_rf(app_template_path)
     FileUtils.mkdir(app_template_path)
 
-    `rails new #{app_template_path} --skip-gemfile --skip-action-cable --skip-active-storage --skip-active-record ---skip-activemodel --skip-active-job --skip-sprockets --skip-javascript --skip-listen --no-rc`
+    `rails new #{app_template_path} --skip-gemfile --skip-action-cable --skip-active-storage --skip-active-record ---skip-activemodel --skip-active-job --skip-sprockets --skip-javascript --skip-listen --skip-kamal --no-rc`
 
     File.open("#{app_template_path}/config/boot.rb", "w")
   end
