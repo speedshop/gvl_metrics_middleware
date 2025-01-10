@@ -15,14 +15,13 @@ jobs:
           - '3.4'
           - '3.3'
           - '3.2'
-          - '3.1'
         gemfile:
           - gemfiles/rails_80.gemfile
           - gemfiles/rails_72.gemfile
           - gemfiles/rails_71.gemfile
     runs-on: ubuntu-22.04
     env:
-      BUNDLE_GEMFILE: ${{ matrix.gemfile }}
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfile }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Ruby
