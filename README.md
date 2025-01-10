@@ -38,17 +38,17 @@ For example, if you would like to record the GVL metrics in New Relic, you can u
 # config/initializers/gvl_metrics_middleware.rb
 GvlMetricsMiddleware.configure do |config|
   config.rack do |total, running, io_wait, gvl_wait|
-    ::NewRelic::Agent.record_metric("Custom/Rack/GVL/total", total)
-    ::NewRelic::Agent.record_metric("Custom/Rack/GVL/running", running)
-    ::NewRelic::Agent.record_metric("Custom/Rack/GVL/io_wait", io_wait)
-    ::NewRelic::Agent.record_metric("Custom/Rack/GVL/gvl_wait", gvl_wait)
+    NewRelic::Agent.record_metric("Custom/Rack/GVL/total", total)
+    NewRelic::Agent.record_metric("Custom/Rack/GVL/running", running)
+    NewRelic::Agent.record_metric("Custom/Rack/GVL/io_wait", io_wait)
+    NewRelic::Agent.record_metric("Custom/Rack/GVL/gvl_wait", gvl_wait)
   end
 
   config.sidekiq do |total, running, io_wait, gvl_wait|
-    ::NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/total", total)
-    ::NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/running", running)
-    ::NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/io_wait", io_wait)
-    ::NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/gvl_wait", gvl_wait)
+    NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/total", total)
+    NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/running", running)
+    NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/io_wait", io_wait)
+    NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/gvl_wait", gvl_wait)
   end
 end
 ```
