@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "test_in_isolation_helper"
-require 'minitest/mock'
+require "minitest/mock"
 
 class RailtieTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
