@@ -1,0 +1,16 @@
+AllCops:
+  DisabledByDefault: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always_true
+
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+Layout/EmptyLineAfterMagicComment:
+  Enabled: true
+
+Layout/TrailingEmptyLines:
+  Enabled: true
