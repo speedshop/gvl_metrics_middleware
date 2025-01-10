@@ -5,6 +5,7 @@ $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "active_support/test_case"
 require "active_support/testing/autorun"
 
+require "minitest/pride"
 require "rails/version"
 require "rails"
 require "rails/railtie"
