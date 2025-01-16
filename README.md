@@ -10,6 +10,11 @@ callback with the collected metrics data.
 Add the gem to your application’s Gemfile, and run `bundle install` to install the gem:
 
 ```bash
+# Be sure to declare these gems above the `gvl_metrics_middleware` gem in your Gemfile:
+gem "rack"
+gem "rails"
+gem "sidekiq"
+
 gem 'gvl_metrics_middleware', git: "https://github.com/speedshop/gvl_metrics_middleware.git"
 ```
 
