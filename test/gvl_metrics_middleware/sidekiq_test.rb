@@ -13,27 +13,27 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
     end
   end
 
-  def setup
+  setup do
     Sidekiq::Testing.inline!
     Sidekiq::Testing.server_middleware do |chain|
       chain.add GvlMetricsMiddleware::Sidekiq
     end
-
-    @captured_value = []
-
-    GvlMetricsMiddleware::Sidekiq.reporter = ->(total, running, io_wait, gvl_wait) {
-      @captured_value << [total, running, io_wait, gvl_wait]
-    }
   end
 
-  def teardown
+  teardown do
     Sidekiq::Testing.disable!
   end
 
-  def test_custom_middleware_adds_header
+  test "Custom hook gets called with GVL metrics" do
+    captured_value = []
+
+    GvlMetricsMiddleware::Sidekiq.reporter = ->(total, running, io_wait, gvl_wait) {
+      captured_value << [total, running, io_wait, gvl_wait]
+    }
+
     TestWorker.perform_async
 
-    total, running, io_wait, gvl_wait = @captured_value[0].map { _1 / 1_000_000_000 }
+    total, running, io_wait, gvl_wait = captured_value[0].map { _1 / 1_000_000_000 }
 
     assert_equal 1, total
     assert_equal 0, running

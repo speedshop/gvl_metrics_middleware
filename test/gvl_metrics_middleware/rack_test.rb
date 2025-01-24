@@ -9,16 +9,17 @@ class RackMiddlewareTest < ActiveSupport::TestCase
   setup do
     @captured_value = []
 
-    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
-      @captured_value << [total, running, io_wait, gvl_wait]
-    }
   end
 
   teardown do
     @captured_value.clear
   end
 
-  test "#configure block allows for setting up a hook for Rack" do
+  test "Custom hook gets called with GVL metrics" do
+    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
+      @captured_value << [total, running, io_wait, gvl_wait]
+    }
+
     get "/"
 
     total, running, io_wait, gvl_wait = @captured_value[0].map { _1 / 1_000_000_000 }
