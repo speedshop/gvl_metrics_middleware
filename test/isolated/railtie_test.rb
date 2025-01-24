@@ -77,6 +77,5 @@ class RailtieTest < ActiveSupport::TestCase
 
   def boot_rails
     require "#{app_path}/config/environment"
-    # binding.irb
   end
 end
