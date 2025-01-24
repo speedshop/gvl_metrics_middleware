@@ -29,6 +29,25 @@ class RackMiddlewareTest < ActiveSupport::TestCase
     assert_equal 0, gvl_wait
   end
 
+  test "on_report_failure gets called on a failure" do
+    name, exception = nil
+
+    GvlMetricsMiddleware.safe_guard = true
+    GvlMetricsMiddleware.on_report_failure do |the_name, the_exception|
+      name, exception = the_name, the_exception
+    end
+
+    GvlMetricsMiddleware::Rack.reporter = ->(_total, _running, _io_wait, _gvl_wait) {
+      raise "boom!"
+    }
+
+    get "/"
+
+    assert_equal "Rack", name
+    assert_equal RuntimeError, exception.class
+    assert_equal "boom!", exception.message
+  end
+
   private
 
   def app
