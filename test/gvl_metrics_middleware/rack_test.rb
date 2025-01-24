@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "gvl_metrics_middleware/rack"
 
 class RackMiddlewareTest < ActiveSupport::TestCase
   include Rack::Test::Methods

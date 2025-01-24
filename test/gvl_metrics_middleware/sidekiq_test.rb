@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "sidekiq/testing"
+require "gvl_metrics_middleware/sidekiq"
 
 class SidekiqMiddlewareTest < ActiveSupport::TestCase
   class TestWorker

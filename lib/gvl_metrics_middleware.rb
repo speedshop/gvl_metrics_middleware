@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "gvl_metrics_middleware/version"
-require "gvl_metrics_middleware/rack" if defined?(::Rack)
-require "gvl_metrics_middleware/sidekiq" if defined?(::Sidekiq)
+require "gvl_metrics_middleware/rack"
 require "gvl_metrics_middleware/railtie" if defined?(::Rails)
 
 module GvlMetricsMiddleware
@@ -17,6 +16,8 @@ module GvlMetricsMiddleware
   end
 
   def self.sidekiq(&block)
+    require "gvl_metrics_middleware/sidekiq"
+
     if block_given?
       GvlMetricsMiddleware::Sidekiq.reporter = block
     else
