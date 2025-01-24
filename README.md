@@ -60,7 +60,7 @@ example chart:
 
 ## Available Metrics
 
-The `gvl_metrics_middleware` reports the following metrics.
+The `gvl_metrics_middleware` reports the following metrics. The metrics are all reported in nanoseconds.
 
 - **`total`**: The total duration of the request processing time, which is the sum of `running`, `io_wait`,
   and `gvl_wait`. This corresponds to the returned value from the value returned by the `GVLTiming::Timer#duration`
