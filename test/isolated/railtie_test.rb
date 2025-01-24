@@ -25,7 +25,7 @@ class RailtieTest < ActiveSupport::TestCase
 
   test "does not insert the rack middleware when disabled" do
     add_to_config <<-RUBY
-      config.gvm_metrics_middleware.enabled = false
+      config.gvl_metrics_middleware.enabled = false
     RUBY
 
     boot_rails
@@ -51,7 +51,7 @@ class RailtieTest < ActiveSupport::TestCase
 
   test "does not insert the sidekiq middleware when explicitly enabled but not set up" do
     add_to_config <<-RUBY
-      config.gvm_metrics_middleware.enabled = true
+      config.gvl_metrics_middleware.enabled = true
     RUBY
 
     Sidekiq.stub :server?, true do
@@ -63,7 +63,7 @@ class RailtieTest < ActiveSupport::TestCase
 
   test "does not insert the sidekiq middleware when disabled" do
     add_to_config <<-RUBY
-      config.gvm_metrics_middleware.enabled = false
+      config.gvl_metrics_middleware.enabled = false
     RUBY
 
     boot_rails
@@ -74,19 +74,19 @@ class RailtieTest < ActiveSupport::TestCase
   test "does not add a safe guard when set to false" do
     boot_rails
 
-    assert !app.config.gvm_metrics_middleware.safe_guard, "Expected safe guard to be disabled"
+    assert !app.config.gvl_metrics_middleware.safe_guard, "Expected safe guard to be disabled"
     assert !GvlMetricsMiddleware.safe_guard?, "Expected safe guard to be disabled"
     assert_nil GvlMetricsMiddleware.on_report_failure
   end
 
   test "adds a safe guard when set to true" do
     add_to_config <<-RUBY
-      config.gvm_metrics_middleware.safe_guard = true
+      config.gvl_metrics_middleware.safe_guard = true
     RUBY
 
     boot_rails
 
-    assert app.config.gvm_metrics_middleware.safe_guard, "Expected safe guard to be enabled"
+    assert app.config.gvl_metrics_middleware.safe_guard, "Expected safe guard to be enabled"
     assert GvlMetricsMiddleware.safe_guard?, "Expected safe guard to be enabled"
     assert_not_nil GvlMetricsMiddleware.on_report_failure
   end
