@@ -23,7 +23,8 @@ module GvlMetricsMiddleware
     end
 
     initializer "gvl_metrics_middleware.sidekiq" do |app|
-      if defined?(::Sidekiq) && defined?(GvlMetricsMiddleware::Sidekiq) && app.config.gvl_metrics_middleware.enabled
+      if defined?(::Sidekiq) && app.config.gvl_metrics_middleware.enabled
+        require "gvl_metrics_middleware/sidekiq"
         ::Sidekiq.configure_server do |config|
           config.server_middleware do |chain|
             chain.prepend(GvlMetricsMiddleware::Sidekiq)
