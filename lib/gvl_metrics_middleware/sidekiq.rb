@@ -17,11 +17,11 @@ module GvlMetricsMiddleware
 
     include ::Sidekiq::ServerMiddleware
 
-    def call(_job_instance, _job_payload, _queue)
+    def call(job_instance, _job_payload, queue)
       gvl_times = GVLTiming.measure { yield }
 
       begin
-        self.class.reporter&.call(gvl_times.duration_ns, gvl_times.running_duration_ns, gvl_times.idle_duration_ns, gvl_times.stalled_duration_ns)
+        self.class.reporter&.call(gvl_times.duration_ns, gvl_times.running_duration_ns, gvl_times.idle_duration_ns, gvl_times.stalled_duration_ns, job_class: job_instance.class.to_s, queue: queue)
       rescue => exception
         GvlMetricsMiddleware.on_report_failure&.call("Sidekiq", exception)
 
