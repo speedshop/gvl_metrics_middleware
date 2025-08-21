@@ -44,11 +44,19 @@ GvlMetricsMiddleware.configure do |config|
     NewRelic::Agent.record_metric("Custom/Rack/GVL/gvl_wait", gvl_wait)
   end
 
-  config.sidekiq do |total, running, io_wait, gvl_wait|
+  config.sidekiq do |total, running, io_wait, gvl_wait, options|
     NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/total", total)
     NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/running", running)
     NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/io_wait", io_wait)
     NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/gvl_wait", gvl_wait)
+
+    # If you want to record metrics for specific queues and job classes, you can do so like this:
+    queue = options[:queue]
+    job_class = options[:job_class]
+    NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/#{queue}/#{job_class}/total", total)
+    NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/#{queue}/#{job_class}/running", running)
+    NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/#{queue}/#{job_class}/io_wait", io_wait)
+    NewRelic::Agent.record_metric("Custom/Sidekiq/GVL/#{queue}/#{job_class}/gvl_wait", gvl_wait)
   end
 end
 ```

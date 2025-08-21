@@ -27,18 +27,22 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
   test "Custom hook gets called with GVL metrics" do
     captured_value = []
 
-    GvlMetricsMiddleware::Sidekiq.reporter = ->(total, running, io_wait, gvl_wait) {
-      captured_value << [total, running, io_wait, gvl_wait]
+    GvlMetricsMiddleware::Sidekiq.reporter = ->(total, running, io_wait, gvl_wait, **options) {
+      captured_value << [total, running, io_wait, gvl_wait, options]
     }
 
     TestWorker.perform_async
 
-    total, running, io_wait, gvl_wait = captured_value[0].map { _1 / 1_000_000_000 }
+    total, running, io_wait, gvl_wait = captured_value[0].first(4).map { _1 / 1_000_000_000 }
+    options = captured_value[0][4]
 
     assert_equal 1, total
     assert_equal 0, running
     assert_equal 1, io_wait
     assert_equal 0, gvl_wait
+    assert_equal [:job_class, :queue], options.keys
+    assert_equal "SidekiqMiddlewareTest::TestWorker", options[:job_class]
+    assert_equal "default", options[:queue]
   end
 
   test "on_report_failure gets called on a failure" do
@@ -49,7 +53,7 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
       name, exception = the_name, the_exception
     end
 
-    GvlMetricsMiddleware::Sidekiq.reporter = ->(_total, _running, _io_wait, _gvl_wait) {
+    GvlMetricsMiddleware::Sidekiq.reporter = proc { |_total, _running, _io_wait, _gvl_wait|
       raise "boom!"
     }
 

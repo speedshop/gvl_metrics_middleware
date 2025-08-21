@@ -8,7 +8,6 @@ class RackMiddlewareTest < ActiveSupport::TestCase
 
   setup do
     @captured_value = []
-
   end
 
   teardown do
