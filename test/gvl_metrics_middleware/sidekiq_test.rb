@@ -25,6 +25,7 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
   end
 
   test "Custom hook gets called with GVL metrics" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
     captured_value = []
 
     GvlMetricsMiddleware::Sidekiq.reporter = ->(total, running, io_wait, gvl_wait, **options) {
@@ -46,6 +47,7 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
   end
 
   test "on_report_failure gets called on a failure" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
     name, exception = nil
 
     GvlMetricsMiddleware.safe_guard = true
@@ -62,5 +64,45 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
     assert_equal "Sidekiq", name
     assert_equal RuntimeError, exception.class
     assert_equal "boom!", exception.message
+  end
+
+  test "middleware skips GVL measurement when sampling rate is 0.0" do
+    GvlMetricsMiddleware.sampling_rate = 0.0
+    captured_value = []
+
+    GvlMetricsMiddleware::Sidekiq.reporter = ->(total, running, io_wait, gvl_wait, **options) {
+      captured_value << [total, running, io_wait, gvl_wait, options]
+    }
+
+    TestWorker.perform_async
+
+    assert_empty captured_value
+  end
+
+  test "middleware always measures when sampling rate is 1.0" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
+    captured_value = []
+
+    GvlMetricsMiddleware::Sidekiq.reporter = ->(total, running, io_wait, gvl_wait, **options) {
+      captured_value << [total, running, io_wait, gvl_wait, options]
+    }
+
+    10.times { TestWorker.perform_async }
+
+    assert_equal 10, captured_value.length
+  end
+
+  test "middleware respects sampling rate probabilistically" do
+    GvlMetricsMiddleware.sampling_rate = 0.5
+    captured_value = []
+
+    GvlMetricsMiddleware::Sidekiq.reporter = ->(total, running, io_wait, gvl_wait, **options) {
+      captured_value << [total, running, io_wait, gvl_wait, options]
+    }
+
+    10.times { TestWorker.perform_async }
+
+    assert_operator captured_value.length, :>, 2
+    assert_operator captured_value.length, :<, 9
   end
 end

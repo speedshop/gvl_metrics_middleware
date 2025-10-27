@@ -15,6 +15,8 @@ class RackMiddlewareTest < ActiveSupport::TestCase
   end
 
   test "Custom hook gets called with GVL metrics" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
+
     GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
       @captured_value << [total, running, io_wait, gvl_wait]
     }
@@ -30,6 +32,7 @@ class RackMiddlewareTest < ActiveSupport::TestCase
   end
 
   test "on_report_failure gets called on a failure" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
     name, exception = nil
 
     GvlMetricsMiddleware.safe_guard = true
@@ -46,6 +49,43 @@ class RackMiddlewareTest < ActiveSupport::TestCase
     assert_equal "Rack", name
     assert_equal RuntimeError, exception.class
     assert_equal "boom!", exception.message
+  end
+
+  test "middleware skips GVL measurement when sampling rate is 0.0" do
+    GvlMetricsMiddleware.sampling_rate = 0.0
+
+    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
+      @captured_value << [total, running, io_wait, gvl_wait]
+    }
+
+    get "/"
+
+    assert_empty @captured_value
+  end
+
+  test "middleware always measures when sampling rate is 1.0" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
+
+    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
+      @captured_value << [total, running, io_wait, gvl_wait]
+    }
+
+    10.times { get "/" }
+
+    assert_equal 10, @captured_value.length
+  end
+
+  test "middleware respects sampling rate probabilistically" do
+    GvlMetricsMiddleware.sampling_rate = 0.5
+
+    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
+      @captured_value << [total, running, io_wait, gvl_wait]
+    }
+
+    10.times { get "/" }
+
+    assert_operator @captured_value.length, :>, 2
+    assert_operator @captured_value.length, :<, 9
   end
 
   private

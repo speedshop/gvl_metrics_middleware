@@ -18,6 +18,8 @@ module GvlMetricsMiddleware
     include ::Sidekiq::ServerMiddleware
 
     def call(job_instance, _job_payload, queue)
+      return yield unless GvlMetricsMiddleware.should_sample?
+
       gvl_times = GVLTiming.measure { yield }
 
       begin
