@@ -77,6 +77,12 @@ module Generation
     end
   end
 
+  def add_initializer(name, contents)
+    File.open("#{app_path}/config/initializers/#{name}.rb", "w") do |f|
+      f.puts contents
+    end
+  end
+
   def self.initialize_app
     FileUtils.rm_rf(app_template_path)
     FileUtils.mkdir(app_template_path)
