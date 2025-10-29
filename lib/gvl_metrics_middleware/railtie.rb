@@ -8,7 +8,7 @@ module GvlMetricsMiddleware
     config.gvl_metrics_middleware.enabled = !Rails.env.test?
     config.gvl_metrics_middleware.safe_guard = Rails.env.production?
 
-    initializer "gvl_metrics_middleware" do |app|
+    initializer "gvl_metrics_middleware", after: :load_config_initializers do |app|
       if app.config.gvl_metrics_middleware.enabled && app.config.gvl_metrics_middleware.safe_guard
         GvlMetricsMiddleware.on_report_failure.nil? && GvlMetricsMiddleware.on_report_failure do |source, exception|
           Rails.logger.error("GVL Metrics Middleware failed to report metrics from #{source}: #{exception.class} (#{exception.message})")
@@ -18,11 +18,11 @@ module GvlMetricsMiddleware
       end
     end
 
-    initializer "gvl_metrics_middleware.rack" do |app|
+    initializer "gvl_metrics_middleware.rack", after: :load_config_initializers do |app|
       app.config.middleware.insert(0, GvlMetricsMiddleware::Rack) if app.config.gvl_metrics_middleware.enabled
     end
 
-    initializer "gvl_metrics_middleware.sidekiq" do |app|
+    initializer "gvl_metrics_middleware.sidekiq", after: :load_config_initializers do |app|
       if defined?(::Sidekiq) && app.config.gvl_metrics_middleware.enabled
         require "gvl_metrics_middleware/sidekiq"
         ::Sidekiq.configure_server do |config|

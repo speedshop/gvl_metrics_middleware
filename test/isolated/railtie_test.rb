@@ -33,6 +33,18 @@ class RailtieTest < ActiveSupport::TestCase
     assert_not_includes app.config.middleware.map(&:name), "GvlMetricsMiddleware::Rack"
   end
 
+  test "allows rack middleware configuration in initializers before middleware is added" do
+    add_initializer "gvl_config", <<-RUBY
+      Rails.application.configure do
+        config.gvl_metrics_middleware.enabled = false
+      end
+    RUBY
+
+    boot_rails
+
+    assert_not_includes app.config.middleware.map(&:name), "GvlMetricsMiddleware::Rack"
+  end
+
   test "inserts the sidekiq middleware to the very beginning when enabled" do
     add_to_config <<-RUBY
       GvlMetricsMiddleware.configure do |config|
@@ -67,6 +79,20 @@ class RailtieTest < ActiveSupport::TestCase
     RUBY
 
     boot_rails
+
+    assert_not_includes Sidekiq.default_configuration.server_middleware.map(&:klass).map(&:name), "GvlMetricsMiddleware::Sidekiq"
+  end
+
+  test "allows sidekiq middleware configuration in initializers before middleware is added" do
+    add_initializer "gvl_config", <<-RUBY
+      Rails.application.configure do
+        config.gvl_metrics_middleware.enabled = false
+      end
+    RUBY
+
+    Sidekiq.stub :server?, true do
+      boot_rails
+    end
 
     assert_not_includes Sidekiq.default_configuration.server_middleware.map(&:klass).map(&:name), "GvlMetricsMiddleware::Sidekiq"
   end
