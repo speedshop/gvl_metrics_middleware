@@ -18,6 +18,7 @@ class ActiveSupport::TestCase
   private
 
   def reset
+    GvlMetricsMiddleware.sampling_rate = 0.01
     GvlMetricsMiddleware::Rack.reporter = nil
     GvlMetricsMiddleware::Sidekiq.reporter = nil
   end

@@ -22,6 +22,9 @@ application’s `config/initializers`directory:
 ```ruby
 # config/initializers/gvl_metrics_middleware.rb
 GvlMetricsMiddleware.configure do |config|
+  # Optional: Set sampling rate (0.0 to 1.0, defaults to 0.01 for 1% sampling)
+  config.sampling_rate = 0.1 # Sample 10% of requests/jobs
+
   config.rack do |total, running, io_wait, gvl_wait|
     # Your code here...
   end
@@ -37,6 +40,9 @@ For example, if you would like to record the GVL metrics in New Relic, you can u
 ```ruby
 # config/initializers/gvl_metrics_middleware.rb
 GvlMetricsMiddleware.configure do |config|
+  # Increase sampling from default 1% to 10% for more data
+  config.sampling_rate = 0.1
+
   config.rack do |total, running, io_wait, gvl_wait|
     NewRelic::Agent.record_metric("Custom/Rack/GVL/total", total)
     NewRelic::Agent.record_metric("Custom/Rack/GVL/running", running)
@@ -79,6 +85,24 @@ The `gvl_metrics_middleware` reports the following metrics. The metrics are all 
   value returned by the `GVLTiming::Timer#idle_duration` method.
 - **`gvl_wait`**: The time spent waiting to acquire the GVL. This corresponds to the value returned by
   the `GVLTiming::Timer#stalled_duration` method.
+
+## Sampling
+
+By default, the middleware samples 1% of requests and jobs to minimize overhead. You can adjust this sampling rate:
+```ruby
+GvlMetricsMiddleware.configure do |config|
+  # Sample 25% of requests/jobs
+  config.sampling_rate = 0.25
+
+  # Your reporters here...
+end
+```
+
+The `sampling_rate` option accepts a value between `0.0` (no sampling) and `1.0` (100% sampling). The default is `0.01` (1%).
+
+The middleware will randomly decide whether to instrument each request or job based on the configured rate. The default 1% sampling provides meaningful metrics while maintaining minimal performance overhead.
+
+**Important**: Your metrics will only represent the sampled portion of traffic. You may need to adjust your alerting and analysis accordingly.
 
 ## Performance Overhead
 

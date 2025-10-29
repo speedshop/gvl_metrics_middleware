@@ -19,6 +19,8 @@ module GvlMetricsMiddleware
     end
 
     def call(env)
+      return @app.call(env) unless GvlMetricsMiddleware.should_sample?
+
       response = nil
 
       gvl_times = GVLTiming.measure do
