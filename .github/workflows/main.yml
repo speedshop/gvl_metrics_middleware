@@ -16,6 +16,7 @@ jobs:
           - '3.3'
           - '3.2'
         gemfile:
+          - gemfiles/rails_81.gemfile
           - gemfiles/rails_80.gemfile
           - gemfiles/rails_72.gemfile
           - gemfiles/rails_71.gemfile
@@ -51,7 +52,7 @@ jobs:
           - 'ruby-head'
         gemfile:
           - gemfiles/rails_edge.gemfile
-          - gemfiles/rails_80.gemfile
+          - gemfiles/rails_81.gemfile
     runs-on: ubuntu-22.04
     env:
       BUNDLE_GEMFILE: ${{ matrix.gemfile }}
