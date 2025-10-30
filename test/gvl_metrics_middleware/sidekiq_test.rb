@@ -9,7 +9,7 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
     include Sidekiq::Worker
 
     def perform(*args)
-      sleep 1
+      sleep 0.001
     end
   end
 
@@ -34,12 +34,12 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
 
     TestWorker.perform_async
 
-    total, running, io_wait, gvl_wait = captured_value[0].first(4).map { _1 / 1_000_000_000 }
+    total, running, io_wait, gvl_wait = captured_value[0].first(4).map { (_1.to_f / 1_000_000_000).round(3) }
     options = captured_value[0][4]
 
-    assert_equal 1, total
+    assert_equal 0.001, total
     assert_equal 0, running
-    assert_equal 1, io_wait
+    assert_equal 0.001, io_wait
     assert_equal 0, gvl_wait
     assert_equal [:job_class, :queue], options.keys
     assert_equal "SidekiqMiddlewareTest::TestWorker", options[:job_class]
@@ -87,9 +87,9 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
       captured_value << [total, running, io_wait, gvl_wait, options]
     }
 
-    10.times { TestWorker.perform_async }
+    100.times { TestWorker.perform_async }
 
-    assert_equal 10, captured_value.length
+    assert_equal 100, captured_value.length
   end
 
   test "middleware respects sampling rate probabilistically" do
@@ -100,9 +100,9 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
       captured_value << [total, running, io_wait, gvl_wait, options]
     }
 
-    10.times { TestWorker.perform_async }
+    100.times { TestWorker.perform_async }
 
-    assert_operator captured_value.length, :>, 2
-    assert_operator captured_value.length, :<, 9
+    assert_operator captured_value.length, :>, 40
+    assert_operator captured_value.length, :<, 60
   end
 end

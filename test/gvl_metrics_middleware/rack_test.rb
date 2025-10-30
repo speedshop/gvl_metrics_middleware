@@ -23,11 +23,11 @@ class RackMiddlewareTest < ActiveSupport::TestCase
 
     get "/"
 
-    total, running, io_wait, gvl_wait = @captured_value[0].map { _1 / 1_000_000_000 }
+    total, running, io_wait, gvl_wait = @captured_value[0].map { (_1.to_f / 1_000_000_000).round(3) }
 
-    assert_equal 1, total
+    assert_equal 0.001, total
     assert_equal 0, running
-    assert_equal 1, io_wait
+    assert_equal 0.001, io_wait
     assert_equal 0, gvl_wait
   end
 
@@ -70,9 +70,9 @@ class RackMiddlewareTest < ActiveSupport::TestCase
       @captured_value << [total, running, io_wait, gvl_wait]
     }
 
-    10.times { get "/" }
+    100.times { get "/" }
 
-    assert_equal 10, @captured_value.length
+    assert_equal 100, @captured_value.length
   end
 
   test "middleware respects sampling rate probabilistically" do
@@ -82,17 +82,17 @@ class RackMiddlewareTest < ActiveSupport::TestCase
       @captured_value << [total, running, io_wait, gvl_wait]
     }
 
-    10.times { get "/" }
+    100.times { get "/" }
 
-    assert_operator @captured_value.length, :>, 2
-    assert_operator @captured_value.length, :<, 9
+    assert_operator @captured_value.length, :>, 40
+    assert_operator @captured_value.length, :<, 60
   end
 
   private
 
   def app
     GvlMetricsMiddleware::Rack.new(->(_env) {
-      sleep 1
+      sleep 0.001
 
       [200, {}, ["Test"]]
     })
