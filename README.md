@@ -15,7 +15,7 @@ gem 'gvl_metrics_middleware', git: "https://github.com/speedshop/gvl_metrics_mid
 
 ## Usage
 
-The `gvl_metrics_middleware` automatically inserts the nessecary middleware into your application’s stack. To get
+The `gvl_metrics_middleware` automatically inserts the necessary middleware into your application’s stack. To get
 started, configure a callback to handle the GVL metrics. Place the following configuration in your
 application’s `config/initializers`directory:
 
@@ -112,7 +112,7 @@ where both the control and experiment groups ran identical code, and the differe
 consistent with those reported in [Shopify's `gvltools`](https://github.com/Shopify/gvltools?tab=readme-ov-file#usage),
 where the overhead was measured at 1-5% in a production environment.
 
-As stated in [the README of `gvltools`](https://github.com/Shopify/gvltools?tab=readme-ov-file#usage)`, the exact
+As stated in [the README of `gvltools`](https://github.com/Shopify/gvltools?tab=readme-ov-file#usage), the exact
 overhead is not yet known. However, unless you observe an immediate, significant jump in response times after
 deployment, the overhead is negligible and should not impact application performance. This makes the middleware a
 reliable choice for tracking GVL metrics in production environments.
