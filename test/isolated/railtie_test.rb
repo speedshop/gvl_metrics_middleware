@@ -45,7 +45,7 @@ class RailtieTest < ActiveSupport::TestCase
     assert_not_includes app.config.middleware.map(&:name), "GvlMetricsMiddleware::Rack"
   end
 
-  test "inserts the sidekiq middleware to the very beginning when enabled" do
+  test "inserts the sidekiq middleware to the very beginning when enabled on server" do
     add_to_config <<-RUBY
       GvlMetricsMiddleware.configure do |config|
         config.sidekiq do |_total, _running, _io_wait, _gvl_wait|
@@ -61,12 +61,12 @@ class RailtieTest < ActiveSupport::TestCase
     assert_equal "GvlMetricsMiddleware::Sidekiq", Sidekiq.default_configuration.server_middleware.to_a[0].klass.name
   end
 
-  test "does not insert the sidekiq middleware when explicitly enabled but not set up" do
+  test "does not insert the sidekiq middleware on the client (e.g. web server is a sidekiq client)" do
     add_to_config <<-RUBY
       config.gvl_metrics_middleware.enabled = true
     RUBY
 
-    Sidekiq.stub :server?, true do
+    Sidekiq.stub :server?, false do
       boot_rails
     end
 
