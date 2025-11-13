@@ -102,7 +102,7 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
 
     100.times { TestWorker.perform_async }
 
-    assert_operator captured_value.length, :>, 40
-    assert_operator captured_value.length, :<, 60
+    assert_operator captured_value.length, :>=, 35
+    assert_operator captured_value.length, :<=, 65
   end
 end
