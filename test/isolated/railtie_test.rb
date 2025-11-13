@@ -30,7 +30,8 @@ class RailtieTest < ActiveSupport::TestCase
 
     boot_rails
 
-    assert_not_includes app.config.middleware.map(&:name), "GvlMetricsMiddleware::Rack"
+    assert !GvlMetricsMiddleware.enabled?, "Expected GvlMetricsMiddleware to be disabled"
+    assert !GvlMetricsMiddleware.should_sample?, "Expected GvlMetricsMiddleware to not sample"
   end
 
   test "allows rack middleware configuration in initializers before middleware is added" do
@@ -42,7 +43,24 @@ class RailtieTest < ActiveSupport::TestCase
 
     boot_rails
 
-    assert_not_includes app.config.middleware.map(&:name), "GvlMetricsMiddleware::Rack"
+    assert !GvlMetricsMiddleware.enabled?, "Expected GvlMetricsMiddleware to be disabled"
+    assert !GvlMetricsMiddleware.should_sample?, "Expected GvlMetricsMiddleware to not sample"
+  end
+
+  test "works with the rack-attack gem" do
+    add_initializer "rack_attack", <<-RUBY
+      DUMMY_MIDDLEWARE = Class.new do
+        def initialize(app) = @app = app
+        def call(env) = @app.call(env)
+      end
+
+      Rails.application.config.middleware.insert_after(Rack::Attack, DUMMY_MIDDLEWARE)
+    RUBY
+
+    boot_rails
+
+    assert_includes app.config.middleware.map(&:name), "Rack::Attack"
+    assert_includes app.config.middleware.map(&:name), "DUMMY_MIDDLEWARE"
   end
 
   test "inserts the sidekiq middleware to the very beginning when enabled on server" do

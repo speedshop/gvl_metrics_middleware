@@ -25,6 +25,14 @@ module GvlMetricsMiddleware
     end
   end
 
+  @@enabled = true
+
+  def self.enabled? = @@enabled
+
+  def self.enabled=(value)
+    @@enabled = value
+  end
+
   @@on_report_failure = nil
 
   def self.on_report_failure(&block)
@@ -62,6 +70,6 @@ module GvlMetricsMiddleware
     return true if @@sampling_rate == 1.0
     return false if @@sampling_rate == 0.0
 
-    rand < @@sampling_rate
+    enabled? && (rand < @@sampling_rate)
   end
 end
