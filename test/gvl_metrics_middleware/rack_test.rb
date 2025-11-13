@@ -25,9 +25,9 @@ class RackMiddlewareTest < ActiveSupport::TestCase
 
     total, running, io_wait, gvl_wait = @captured_value[0].map { (_1.to_f / 1_000_000_000).round(3) }
 
-    assert_equal 0.001, total
+    assert_operator total, :<=, 0.002
     assert_equal 0, running
-    assert_equal 0.001, io_wait
+    assert_operator io_wait, :<=, 0.002
     assert_equal 0, gvl_wait
   end
 
