@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
 require "gvl_timing"
-require "sidekiq/middleware/modules"
+
+if ::Sidekiq::VERSION >= "6.5.0"
+  require "sidekiq/middleware/modules"
+end
 
 module GvlMetricsMiddleware
   class Sidekiq
@@ -15,7 +18,10 @@ module GvlMetricsMiddleware
       end
     end
 
-    include ::Sidekiq::ServerMiddleware
+    if ::Sidekiq::VERSION >= "6.5.0"
+      include ::Sidekiq::ServerMiddleware
+    end
+    
 
     def call(job_instance, _job_payload, queue)
       return yield unless GvlMetricsMiddleware.should_sample?
