@@ -88,6 +88,19 @@ class RackMiddlewareTest < ActiveSupport::TestCase
     assert_operator @captured_value.length, :<=, 65
   end
 
+  test "middleware skips when no reporter configured" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
+    GvlMetricsMiddleware::Rack.reporter = nil
+
+    measure_called = false
+    stub_proc = proc { measure_called = true }
+    GVLTiming.stub(:measure, stub_proc) do
+      get "/"
+    end
+
+    assert_not measure_called
+  end
+
   private
 
   def app

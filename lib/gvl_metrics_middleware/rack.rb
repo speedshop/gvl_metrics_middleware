@@ -19,7 +19,8 @@ module GvlMetricsMiddleware
     end
 
     def call(env)
-      return @app.call(env) unless GvlMetricsMiddleware.should_sample?
+      reporter = self.class.reporter
+      return @app.call(env) if reporter.nil? || !GvlMetricsMiddleware.should_sample?
 
       response = nil
 
@@ -28,7 +29,7 @@ module GvlMetricsMiddleware
       end
 
       begin
-        self.class.reporter&.call(gvl_times.duration_ns, gvl_times.running_duration_ns, gvl_times.idle_duration_ns, gvl_times.stalled_duration_ns)
+        reporter.call(gvl_times.duration_ns, gvl_times.running_duration_ns, gvl_times.idle_duration_ns, gvl_times.stalled_duration_ns)
       rescue => exception
         GvlMetricsMiddleware.on_report_failure&.call("Rack", exception)
 
