@@ -1,13 +1,10 @@
 # GVL Metrics Middleware
 
-`gvl_metrics_middleware` is a Ruby gem that provides middleware for monitoring and gathering metrics on Global VM Lock (
-GVL) in multi-threaded Ruby applications. This gem leverages
-[the `gvl_timing` gem](https://github.com/jhawthorn/gvl_timing) to measure time spent in the GVL and invokes a provided
-callback with the collected metrics data.
+`gvl_metrics_middleware` is a Ruby gem that monitors the Global VM Lock (GVL) in multi-threaded Ruby applications. This gem uses [the `gvl_timing` gem](https://github.com/jhawthorn/gvl_timing) to measure time spent in the GVL. It then calls your callback with the metrics.
 
 ## Installation
 
-Add the gem to your application’s Gemfile, and run `bundle install` to install the gem:
+Add the gem to your application's Gemfile, and run `bundle install` to install the gem:
 
 ```bash
 gem 'gvl_metrics_middleware', git: "https://github.com/speedshop/gvl_metrics_middleware.git"
@@ -15,9 +12,7 @@ gem 'gvl_metrics_middleware', git: "https://github.com/speedshop/gvl_metrics_mid
 
 ## Usage
 
-The `gvl_metrics_middleware` automatically inserts the necessary middleware into your application’s stack. To get
-started, configure a callback to handle the GVL metrics. Place the following configuration in your
-application’s `config/initializers`directory:
+The `gvl_metrics_middleware` automatically adds itself to your application. To get started, set up a callback to handle the GVL metrics. Put this code in your application's `config/initializers` folder:
 
 ```ruby
 # config/initializers/gvl_metrics_middleware.rb
@@ -35,7 +30,7 @@ GvlMetricsMiddleware.configure do |config|
 end
 ```
 
-For example, if you would like to record the GVL metrics in New Relic, you can use the following configuration.
+For example, here is how to record the GVL metrics in New Relic.
 
 ```ruby
 # config/initializers/gvl_metrics_middleware.rb
@@ -67,28 +62,22 @@ GvlMetricsMiddleware.configure do |config|
 end
 ```
 
-After configuring, you should be able to set up custom charts in New Relic to visualize the GVL metrics. Here is an
-example chart:
+After you set this up, you can create custom charts in New Relic to see the GVL metrics. Here is an example chart:
 
 ![Screenshot of the GVL metrics chart on New Relic](gvl-metrics.png)
 
 ## Available Metrics
 
-The `gvl_metrics_middleware` reports the following metrics. The metrics are all reported in nanoseconds.
+The `gvl_metrics_middleware` reports these metrics. All metrics are in nanoseconds.
 
-- **`total`**: The total duration of the request processing time, which is the sum of `running`, `io_wait`,
-  and `gvl_wait`. This corresponds to the returned value from the value returned by the `GVLTiming::Timer#duration`
-  method in `gvl_timing`.
-- **`running`**: The time a thread held the GVL and performed work (a.k.a CPU time). This corresponds to the
-  value returned by the `GVLTiming::Timer#cpu_duration` method.
-- **`io_wait`**: The time spent waiting for I/O operations after releasing the GVL. This corresponds to the
-  value returned by the `GVLTiming::Timer#idle_duration` method.
-- **`gvl_wait`**: The time spent waiting to acquire the GVL. This corresponds to the value returned by
-  the `GVLTiming::Timer#stalled_duration` method.
+- **`total`**: The total time to process the request. This equals `running` + `io_wait` + `gvl_wait`. Comes from `GVLTiming::Timer#duration` in `gvl_timing`.
+- **`running`**: The time a thread held the GVL and did work. Also called CPU time. Comes from `GVLTiming::Timer#cpu_duration`.
+- **`io_wait`**: The time spent waiting for I/O after the thread released the GVL. Comes from `GVLTiming::Timer#idle_duration`.
+- **`gvl_wait`**: The time spent waiting to get the GVL. Comes from `GVLTiming::Timer#stalled_duration`.
 
 ## Sampling
 
-By default, the middleware samples 1% of requests and jobs to minimize overhead. You can adjust this sampling rate:
+By default, the middleware samples 1% of requests and jobs to keep overhead low. You can change this rate:
 ```ruby
 GvlMetricsMiddleware.configure do |config|
   # Sample 25% of requests/jobs
@@ -98,46 +87,32 @@ GvlMetricsMiddleware.configure do |config|
 end
 ```
 
-The `sampling_rate` option accepts a value between `0.0` (no sampling) and `1.0` (100% sampling). The default is `0.01` (1%).
+The `sampling_rate` option takes a value between `0.0` (no sampling) and `1.0` (100% sampling). The default is `0.01` (1%).
 
-The middleware will randomly decide whether to instrument each request or job based on the configured rate. The default 1% sampling provides meaningful metrics while maintaining minimal performance overhead.
+The middleware will randomly pick which requests or jobs to measure based on this rate. The default 1% sampling gives you useful metrics while keeping overhead low.
 
-**Important**: Your metrics will only represent the sampled portion of traffic. You may need to adjust your alerting and analysis accordingly.
+**Important**: Your metrics only show the sampled part of your traffic. You may need to adjust your alerts and analysis to match.
 
 ## Performance Overhead
 
-The overhead introduced by `gvl_metrics_middleware` is minimal. Benchmarking has shown only a 1% difference in response
-times between scenarios with and without GVL metrics collection. This result has been validated through an A/A test,
-where both the control and experiment groups ran identical code, and the difference remained at 1%. This 1% overhead is
-consistent with those reported in [Shopify's `gvltools`](https://github.com/Shopify/gvltools?tab=readme-ov-file#usage),
-where the overhead was measured at 1-5% in a production environment.
+The overhead from `gvl_metrics_middleware` is small. Tests show only a 1% difference in response times. We ran tests with and without GVL metrics. We checked this with an A/A test. Both groups ran the same code. The difference stayed at 1%. This matches what [Shopify's `gvltools`](https://github.com/Shopify/gvltools?tab=readme-ov-file#usage) found. Their overhead was 1-5% in production.
 
-As stated in [the README of `gvltools`](https://github.com/Shopify/gvltools?tab=readme-ov-file#usage), the exact
-overhead is not yet known. However, unless you observe an immediate, significant jump in response times after
-deployment, the overhead is negligible and should not impact application performance. This makes the middleware a
-reliable choice for tracking GVL metrics in production environments.
+As [the README of `gvltools`](https://github.com/Shopify/gvltools?tab=readme-ov-file#usage) says, the exact overhead is not known yet. But if you don't see a big jump in response times after you deploy, the overhead is small. It will not hurt your app's speed. This makes the middleware good for tracking GVL metrics in production.
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can
-also run `bin/console` for an interactive prompt that will allow you to experiment.
+After you check out the repo, run `bin/setup` to install what you need. Then run `rake test` to run the tests. You can also run `bin/console`. This gives you an interactive prompt where you can try things out.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the
-version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version,
-push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem on your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`. Then run `bundle exec rake release`. This will create a git tag for the version. It will push git commits and the tag. It will also push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/speedshop/gvl_metrics_middleware. This
-project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to
-the [code of conduct](https://github.com/speedshop/gvl_metrics_middleware/blob/main/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/speedshop/gvl_metrics_middleware. This project should be a safe, welcoming place for everyone. All contributors must follow the [code of conduct](https://github.com/speedshop/gvl_metrics_middleware/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+This gem is open source under the [MIT License](https://opensource.org/licenses/MIT).
 
 ## Code of Conduct
 
-Everyone interacting in the GvlMetricsMiddleware project's codebases, issue trackers, chat rooms and mailing lists is
-expected to follow
-the [code of conduct](https://github.com/speedshop/gvl_metrics_middleware/blob/main/CODE_OF_CONDUCT.md).
+Everyone who uses the GvlMetricsMiddleware project must follow the [code of conduct](https://github.com/speedshop/gvl_metrics_middleware/blob/main/CODE_OF_CONDUCT.md). This includes codebases, issue trackers, chat rooms, and mailing lists.
