@@ -33,28 +33,28 @@ appraise "rails_71" do
 end
 
 appraise "sidekiq_52" do
-  gem "sidekiq", "~> 5.2.0"
+  gem "sidekiq", "~> 5.2"
   gem "rails", "~> 7.1.0"
   gem "railties", "~> 7.1.0"
   gem "activesupport", "~> 7.1.0"
 end
 
 appraise "sidekiq_6x" do
-  gem "sidekiq", "~> 6.5.0"
+  gem "sidekiq", "~> 6.5"
   gem "rails", "~> 7.1.0"
   gem "railties", "~> 7.1.0"
   gem "activesupport", "~> 7.1.0"
 end
 
 appraise "sidekiq_7x" do
-  gem "sidekiq", "~> 7.3.0"
+  gem "sidekiq", "~> 7.3"
   gem "rails", "~> 8.0.0"
   gem "railties", "~> 8.0.0"
   gem "activesupport", "~> 8.0.0"
 end
 
 appraise "sidekiq_8x" do
-  gem "sidekiq", "~> 8.1.0"
+  gem "sidekiq", "~> 8.1"
   gem "rails", "~> 8.0.0"
   gem "railties", "~> 8.0.0"
   gem "activesupport", "~> 8.0.0"
