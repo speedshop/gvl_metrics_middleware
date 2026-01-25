@@ -40,7 +40,7 @@ appraise "sidekiq_52" do
 end
 
 appraise "sidekiq_6x" do
-  gem "sidekiq", "~> 6.5"
+  gem "sidekiq", "~> 6.5", ">= 6.5.12"
   gem "rails", "~> 7.1.0"
   gem "railties", "~> 7.1.0"
   gem "activesupport", "~> 7.1.0"
