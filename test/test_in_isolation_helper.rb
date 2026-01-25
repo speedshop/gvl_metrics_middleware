@@ -15,6 +15,15 @@ require "rails"
 require "rails/railtie"
 require "sidekiq"
 
+# Monkey-patch Sidekiq < 6.5.0 to provide default_configuration for tests
+if !Sidekiq.respond_to?(:default_configuration) && defined?(Sidekiq::VERSION)
+  module Sidekiq
+    def self.default_configuration
+      @default_configuration ||= Struct.new(:server_middleware).new(Sidekiq.server_middleware)
+    end
+  end
+end
+
 require "active_support/testing/method_call_assertions"
 ActiveSupport::TestCase.include ActiveSupport::Testing::MethodCallAssertions
 
