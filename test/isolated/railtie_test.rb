@@ -64,8 +64,6 @@ class RailtieTest < ActiveSupport::TestCase
   end
 
   test "inserts the sidekiq middleware to the very beginning when enabled on server" do
-    skip "Sidekiq.default_configuration not available" unless Sidekiq.respond_to?(:default_configuration)
-
     add_to_config <<-RUBY
       GvlMetricsMiddleware.configure do |config|
         config.sidekiq do |_total, _running, _io_wait, _gvl_wait|
@@ -82,8 +80,6 @@ class RailtieTest < ActiveSupport::TestCase
   end
 
   test "does not insert the sidekiq middleware on the client (e.g. web server is a sidekiq client)" do
-    skip "Sidekiq.default_configuration not available" unless Sidekiq.respond_to?(:default_configuration)
-
     add_to_config <<-RUBY
       config.gvl_metrics_middleware.enabled = true
     RUBY
@@ -96,8 +92,6 @@ class RailtieTest < ActiveSupport::TestCase
   end
 
   test "does not insert the sidekiq middleware when disabled" do
-    skip "Sidekiq.default_configuration not available" unless Sidekiq.respond_to?(:default_configuration)
-
     add_to_config <<-RUBY
       config.gvl_metrics_middleware.enabled = false
     RUBY
@@ -108,8 +102,6 @@ class RailtieTest < ActiveSupport::TestCase
   end
 
   test "allows sidekiq middleware configuration in initializers before middleware is added" do
-    skip "Sidekiq.default_configuration not available" unless Sidekiq.respond_to?(:default_configuration)
-
     add_initializer "gvl_config", <<-RUBY
       Rails.application.configure do
         config.gvl_metrics_middleware.enabled = false
