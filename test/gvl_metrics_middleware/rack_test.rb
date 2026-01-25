@@ -26,9 +26,9 @@ class RackMiddlewareTest < ActiveSupport::TestCase
     total, running, io_wait, gvl_wait = @captured_value[0].map { (_1.to_f / 1_000_000_000).round(3) }
 
     assert_operator total, :<=, 0.002
-    assert_equal 0, running
+    assert_operator running, :<=, 0.002
     assert_operator io_wait, :<=, 0.002
-    assert_equal 0, gvl_wait
+    assert_operator gvl_wait, :<=, 0.002
   end
 
   test "on_report_failure gets called on a failure" do

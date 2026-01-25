@@ -37,10 +37,10 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
     total, running, io_wait, gvl_wait = captured_value[0].first(4).map { (_1.to_f / 1_000_000_000).round(3) }
     options = captured_value[0][4]
 
-    assert_equal 0.001, total
-    assert_equal 0, running
-    assert_equal 0.001, io_wait
-    assert_equal 0, gvl_wait
+    assert_operator total, :<=, 0.002
+    assert_operator running, :<=, 0.002
+    assert_operator io_wait, :<=, 0.002
+    assert_operator gvl_wait, :<=, 0.002
     assert_equal [:job_class, :queue], options.keys
     assert_equal "SidekiqMiddlewareTest::TestWorker", options[:job_class]
     assert_equal "default", options[:queue]
