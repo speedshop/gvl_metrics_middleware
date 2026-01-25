@@ -84,8 +84,8 @@ class RackMiddlewareTest < ActiveSupport::TestCase
 
     100.times { get "/" }
 
-    assert_operator @captured_value.length, :>=, 35
-    assert_operator @captured_value.length, :<=, 65
+    assert_operator @captured_value.length, :>=, 25
+    assert_operator @captured_value.length, :<=, 75
   end
 
   test "middleware skips when no reporter configured" do

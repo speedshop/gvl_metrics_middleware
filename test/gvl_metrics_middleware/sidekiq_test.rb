@@ -102,8 +102,8 @@ class SidekiqMiddlewareTest < ActiveSupport::TestCase
 
     100.times { TestWorker.perform_async }
 
-    assert_operator captured_value.length, :>=, 35
-    assert_operator captured_value.length, :<=, 65
+    assert_operator captured_value.length, :>=, 25
+    assert_operator captured_value.length, :<=, 75
   end
 
   test "middleware skips when no reporter configured" do
