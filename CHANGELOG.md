@@ -4,7 +4,7 @@
 
 - Add Ruby 4.0 support ([#25](https://github.com/speedshop/gvl_metrics_middleware/pull/25))
 - Add support for Sidekiq 5.2 ([#23](https://github.com/speedshop/gvl_metrics_middleware/pull/23))
-- Skip GVL measurement when no reporter is configured, improving performance ([#20](https://github.com/speedshop/gvl_metrics_middleware/pull/20))
+- Skip GVL measurement when no reporter is configured, improving performance ([#21](https://github.com/speedshop/gvl_metrics_middleware/pull/21))
 
 ## [0.2.1] - 2025-11-14
 
