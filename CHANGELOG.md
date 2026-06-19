@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- The Rack reporter now receives a `route:` keyword option: the request's route template — `"controller#action"` on Rails or the matched route on Sinatra (`nil` when no route matched). This lets reporters segment GVL metrics by endpoint (e.g. the CPU/IO ratio per action), mirroring the `queue`/`job_class` options the Sidekiq reporter already receives. Reporters defined as strict lambdas should accept the keyword (e.g. `->(total, running, io_wait, gvl_wait, **options) {}`); block-style reporters are unaffected.
+
 ## [0.3.0] - 2026-01-26
 
 - Add Ruby 4.0 support ([#25](https://github.com/speedshop/gvl_metrics_middleware/pull/25))

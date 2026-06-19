@@ -20,11 +20,14 @@ GvlMetricsMiddleware.configure do |config|
   # Optional: Set sampling rate (0.0 to 1.0, defaults to 0.01 for 1% sampling)
   config.sampling_rate = 0.1 # Sample 10% of requests/jobs
 
-  config.rack do |total, running, io_wait, gvl_wait|
+  config.rack do |total, running, io_wait, gvl_wait, options|
+    # options[:route] is the request's route — "controller#action" on Rails or the
+    # matched route on Sinatra (nil when no route matched).
     # Your code here...
   end
 
-  config.sidekiq do |total, running, io_wait, gvl_wait|
+  config.sidekiq do |total, running, io_wait, gvl_wait, options|
+    # options[:queue] and options[:job_class] describe the job.
     # Your code here...
   end
 end
@@ -38,11 +41,19 @@ GvlMetricsMiddleware.configure do |config|
   # Increase sampling from default 1% to 10% for more data
   config.sampling_rate = 0.1
 
-  config.rack do |total, running, io_wait, gvl_wait|
+  config.rack do |total, running, io_wait, gvl_wait, options|
     NewRelic::Agent.record_metric("Custom/Rack/GVL/total", total)
     NewRelic::Agent.record_metric("Custom/Rack/GVL/running", running)
     NewRelic::Agent.record_metric("Custom/Rack/GVL/io_wait", io_wait)
     NewRelic::Agent.record_metric("Custom/Rack/GVL/gvl_wait", gvl_wait)
+
+    # Segment by route ("users#show" on Rails, "GET /users/:id" on Sinatra) to see
+    # the CPU/IO ratio per action:
+    route = options[:route]
+    if route
+      NewRelic::Agent.record_metric("Custom/Rack/GVL/#{route}/running", running)
+      NewRelic::Agent.record_metric("Custom/Rack/GVL/#{route}/io_wait", io_wait)
+    end
   end
 
   config.sidekiq do |total, running, io_wait, gvl_wait, options|
@@ -74,6 +85,13 @@ The `gvl_metrics_middleware` reports these metrics. All metrics are in nanosecon
 - **`running`**: The time a thread held the GVL and did work. Also called CPU time. Comes from `GVLTiming::Timer#cpu_duration`.
 - **`io_wait`**: The time spent waiting for I/O after the thread released the GVL. Comes from `GVLTiming::Timer#idle_duration`.
 - **`gvl_wait`**: The time spent waiting to get the GVL. Comes from `GVLTiming::Timer#stalled_duration`.
+
+## Per-request context
+
+Besides the four timing values, each callback receives a final `options` hash describing what was measured, so you can segment the metrics:
+
+- **Rack** — `options[:route]`: the request's route *template*. On Rails this is the `"controller#action"` pair (e.g. `users#show`, `admin/users#index`); on Sinatra it is the matched route (e.g. `GET /users/:id`). It is `nil` when no route matched (404s, or a plain Rack app). Only the route template is used — never the raw path — so it stays low-cardinality.
+- **Sidekiq** — `options[:queue]` and `options[:job_class]`: the queue the job ran on and its class name.
 
 ## Sampling
 

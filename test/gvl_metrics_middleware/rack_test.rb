@@ -17,7 +17,7 @@ class RackMiddlewareTest < ActiveSupport::TestCase
   test "Custom hook gets called with GVL metrics" do
     GvlMetricsMiddleware.sampling_rate = 1.0
 
-    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
+    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait, **) {
       @captured_value << [total, running, io_wait, gvl_wait]
     }
 
@@ -40,7 +40,7 @@ class RackMiddlewareTest < ActiveSupport::TestCase
       name, exception = the_name, the_exception
     end
 
-    GvlMetricsMiddleware::Rack.reporter = ->(_total, _running, _io_wait, _gvl_wait) {
+    GvlMetricsMiddleware::Rack.reporter = ->(_total, _running, _io_wait, _gvl_wait, **) {
       raise "boom!"
     }
 
@@ -54,7 +54,7 @@ class RackMiddlewareTest < ActiveSupport::TestCase
   test "middleware skips GVL measurement when sampling rate is 0.0" do
     GvlMetricsMiddleware.sampling_rate = 0.0
 
-    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
+    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait, **) {
       @captured_value << [total, running, io_wait, gvl_wait]
     }
 
@@ -66,7 +66,7 @@ class RackMiddlewareTest < ActiveSupport::TestCase
   test "middleware always measures when sampling rate is 1.0" do
     GvlMetricsMiddleware.sampling_rate = 1.0
 
-    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
+    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait, **) {
       @captured_value << [total, running, io_wait, gvl_wait]
     }
 
@@ -78,7 +78,7 @@ class RackMiddlewareTest < ActiveSupport::TestCase
   test "middleware respects sampling rate probabilistically" do
     GvlMetricsMiddleware.sampling_rate = 0.5
 
-    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait) {
+    GvlMetricsMiddleware::Rack.reporter = ->(total, running, io_wait, gvl_wait, **) {
       @captured_value << [total, running, io_wait, gvl_wait]
     }
 
@@ -101,13 +101,59 @@ class RackMiddlewareTest < ActiveSupport::TestCase
     assert_not measure_called
   end
 
+  test "reporter receives the Rails controller#action as route" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
+    GvlMetricsMiddleware::Rack.reporter = ->(_total, _running, _io_wait, _gvl_wait, **options) {
+      @captured_value << options
+    }
+    @inner_app = ->(env) {
+      env["action_dispatch.request.path_parameters"] = { controller: "admin/users", action: "index" }
+      [200, {}, ["ok"]]
+    }
+
+    get "/admin/users"
+
+    assert_equal "admin/users#index", @captured_value[0][:route]
+  end
+
+  test "reporter receives the Sinatra route as route" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
+    GvlMetricsMiddleware::Rack.reporter = ->(_total, _running, _io_wait, _gvl_wait, **options) {
+      @captured_value << options
+    }
+    @inner_app = ->(env) {
+      env["sinatra.route"] = "GET /users/:id"
+      [200, {}, ["ok"]]
+    }
+
+    get "/users/1"
+
+    assert_equal "GET /users/:id", @captured_value[0][:route]
+  end
+
+  test "reporter receives a nil route when no route matched" do
+    GvlMetricsMiddleware.sampling_rate = 1.0
+    GvlMetricsMiddleware::Rack.reporter = ->(_total, _running, _io_wait, _gvl_wait, **options) {
+      @captured_value << options
+    }
+    @inner_app = ->(_env) { [404, {}, ["not found"]] }
+
+    get "/nope"
+
+    assert_nil @captured_value[0][:route]
+  end
+
   private
 
   def app
-    GvlMetricsMiddleware::Rack.new(->(_env) {
+    GvlMetricsMiddleware::Rack.new(@inner_app || default_inner_app)
+  end
+
+  def default_inner_app
+    ->(_env) {
       sleep 0.001
 
       [200, {}, ["Test"]]
-    })
+    }
   end
 end
